@@ -1,2 +1,2 @@
 # Brewer-s-Friend-Beer-Recipes
-I pick up this topic because I am interested with Beers.
+I pick up this topic because I am interested in Beers.
