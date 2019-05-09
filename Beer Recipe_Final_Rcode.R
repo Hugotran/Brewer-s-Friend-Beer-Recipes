@@ -407,36 +407,51 @@ head(train_data[,num_cols])
 ##########################################################################################################################
 
 ### Naive Bayes approach using naive_bayes method in caret package with imbalanced dataset
-####Remove and free up working space
+
+# Remove and free up working space
 rm(list = ls(all.names = TRUE))
 gc()
-#### Load necessary packages
+
+
+# Load necessary packages
 if(!require(tidyverse))install.packages("tidyverse", repos = "http://cran.us.r-project.org")
 if(!require(tictoc))install.packages("tictoc", repos = "http://cran.us.r-project.org")
 if(!require(caret))install.packages("caret", repos = "http://cran.us.r-project.org")
-#### Load the datasets
+
+# Load the datasets
 tic()
 load("train_data_beerrecipe.RData")
-#### Set up cross validation method for the Naive Bayes model 
+
+
+# Set up cross validation method for the Naive Bayes model 
 fitControl <- trainControl(method = "repeatedcv",
                            number = 5,  ## 5-fold CV
                            repeats = 3, ## repeated three times
                            p = 0.8)
-#### Run the Naive Bayes model
+
+# Run the Naive Bayes model
 set.seed(201955)
+
 model_nb <- train(Style ~ .,
                   data = train_data,
                   method = "naive_bayes",
                   trControl = fitControl,
                   verbose= FALSE)
-#### Result of Naive Bayes approach
-model_nb$results
-#### Save the maximum of accuracy to conduct Table of results
+
+
+# Result of Naive Bayes approach
+max_accuracy_model_nb <- model_nb$results %>% filter(Accuracy == max(Accuracy))
+max_accuracy_model_nb
+
+# Save the maximum of accuracy to conduct Table of results
 nb_accuracy <- max(model_nb$results[4])
+nb_accuracy
 save(nb_accuracy, file = "nb_accuracy.RData")
-#### Memory usage of running Naive Bayes model
+
+# Memory usage of running Naive Bayes model
 memory.size()
-#### Time spending in running Naive Bayes model
+
+# Time spending in running Naive Bayes model
 runtime <- toc()
 nb_runtime <- runtime$toc - runtime$tic
 save(nb_runtime, file = "nb_runtime.RData")
@@ -444,42 +459,59 @@ save(nb_runtime, file = "nb_runtime.RData")
 
 ##########################################################################################################################
 ### Naive Bayes approach using naive_bayes method and "up" sampling in caret package
-#### Remove and free up working space
+
+# Remove and free up working space
 rm(list = ls(all.names = TRUE))
 gc()
-#### Load necessary packages
+
+
+# Load necessary packages
 if(!require(tidyverse))install.packages("tidyverse", repos = "http://cran.us.r-project.org")
 if(!require(tictoc))install.packages("tictoc", repos = "http://cran.us.r-project.org")
 if(!require(caret))install.packages("caret", repos = "http://cran.us.r-project.org")
-#### Load the datasets
+
+# Load the datasets
 tic()
 load("train_data_beerrecipe.RData")
-#### Set up cross validation method for the Naive Bayes model 
+
+
+# Set up cross validation method for the Naive Bayes model 
 fitControl <- trainControl(method = "repeatedcv",
                            number = 5,  ## 5-fold CV
                            repeats = 3, ## repeated three times
                            p = 0.8,
-                           sampling = "up" ## randomly subset all the classes   
-                                           ## to match the frequencies of the higest prevalent class
-                           )
-#### Run the Naive Bayes model with "up" sampling method 
+                           sampling = "up" ## randomly subset all the classes to match the
+                           ## frequencies of the higest prevalent class
+)
+
+# Run the Naive Bayes model with "up" sampling method 
 set.seed(201955)
+
 model_nb_upsampling <- train(Style ~ .,
                              data = train_data,
                              method = "naive_bayes",
                              trControl = fitControl,
                              verbose= FALSE)
-#### Result of Naive Bayes approach with "up" sampling method 
-model_nb_upsampling$results
-#### Save the maximun of accuracy to conduct Table of results
+
+# Result of Naive Bayes approach with "up" sampling method 
+max_accuracy_model_nb_upsampling <- model_nb_upsampling$results %>% 
+  filter(Accuracy == max(Accuracy))
+
+max_accuracy_model_nb_upsampling
+
+# Save the maximum of accuracy to conduct Table of results
 nb_upsampling_accuracy <- max(model_nb_upsampling$results[4])
+nb_upsampling_accuracy
 save(nb_upsampling_accuracy, file = "nb_upsampling_accuracy.RData")
-#### Memory usage of running Naive Bayes model with "up" sampling method 
+
+# Memory usage of running Naive Bayes model with "up" sampling method 
 memory.size()
-#### Time spending in running Naive Bayes model with "up" sampling method 
-runtime <- toc()                                                
+
+# Time spending in running Naive Bayes model with "up" sampling method 
+runtime <- toc()
 nb_upsampling_runtime <- runtime$toc - runtime$tic
 save(nb_upsampling_runtime, file = "nb_upsampling_runtime.RData")
+
 
 
 ##########################################################################################################################
@@ -487,82 +519,114 @@ save(nb_upsampling_runtime, file = "nb_upsampling_runtime.RData")
 ##########################################################################################################################
 
 ### Decision tree approach using rpart method in caret package with imbalanced dataset
-#### Remove and free up working space
+
+# Remove and free up working space
 rm(list = ls(all.names = TRUE))
 gc()
-#### Load necessary packages
+
+# Load necessary packages
 if(!require(tidyverse))install.packages("tidyverse", repos = "http://cran.us.r-project.org")
 if(!require(tictoc))install.packages("tictoc", repos = "http://cran.us.r-project.org")
 if(!require(caret))install.packages("caret", repos = "http://cran.us.r-project.org")
+if(!require(rpart))install.packages("rpart", repos = "http://cran.us.r-project.org")
 if(!require(rpart.plot))install.packages("rpart.plot", repos = "http://cran.us.r-project.org")
-#### Load the datasets
+
+# Load the datasets
 tic()
 load("train_data_beerrecipe.RData")
-#### Set up cross validation method for the Decision tree model 
+
+
+# Set up cross validation method for the Decision tree model 
 fitControl <- trainControl(method = "repeatedcv",
                            number = 5,  ## 5-fold CV
                            repeats = 3, ## repeated three times
                            p = 0.8,
                            returnResamp="all")
-#### Run the Decision tree model
+
+# Run the Decision tree model
 set.seed(201955)
+
 model_rpart <- train(Style ~ .,
                      data = train_data,
                      method = "rpart",
                      trControl = fitControl)
-#### Plot the decision tree
+
+# Plot the decision tree
 rpart.plot.version1(model_rpart$finalModel) 
 title("Decision Tree")
-#### Result of Decision tree approach
-model_rpart$results
-#### Save the maximum of accuracy to conduct Table of results
+
+# Result of Decision tree approach
+max_accuracy_model_rpart <- model_rpart$results %>% filter(Accuracy == max(Accuracy))
+max_accuracy_model_rpart
+
+# Save the maximum of accuracy to conduct Table of results
 rpart_accuracy <- max(model_rpart$results[2])
 save(rpart_accuracy, file = "rpart_accuracy.RData")
-#### Memory usage of running Decision tree model
+rpart_accuracy
+
+# Memory usage of running Decision tree model
 memory.size()
-#### Time spending in running Decision tree model
+
+# Time spending in running Decision tree model
 runtime <- toc()
 rpart_runtime <- runtime$toc - runtime$tic
 save(rpart_runtime, file = "rpart_runtime.RData")
 
+
 ##########################################################################################################################
 ### Decision tree approach using rpart method in caret package with balanced dataset
-#### Remove and free up working space
+
+# Remove and free up working space
 rm(list = ls(all.names = TRUE))
 gc()
-#### Load necessary packages
+
+# Load necessary packages
 if(!require(tidyverse))install.packages("tidyverse", repos = "http://cran.us.r-project.org")
 if(!require(tictoc))install.packages("tictoc", repos = "http://cran.us.r-project.org")
 if(!require(caret))install.packages("caret", repos = "http://cran.us.r-project.org")
+if(!require(rpart))install.packages("rpart", repos = "http://cran.us.r-project.org")
 if(!require(rpart.plot))install.packages("rpart.plot", repos = "http://cran.us.r-project.org")
-#### Load the datasets
+
+# Load the datasets
 tic()
 load("train_data_beerrecipe.RData")
-#### Set up cross validation method for the Decision tree model 
+
+# Set up cross validation method for the Decision tree model 
 fitControl <- trainControl(method = "repeatedcv",
                            number = 5,  ## 5-fold CV
                            repeats = 3, ## repeated three times
                            p = 0.8,
-                           sampling = "up", ## randomly subset all the classes
-                                            ## to match the frequencies of the higest prevalent class
+                           sampling = "up", ## randomly subset all the classes to match the 
+                           ## frequencies of the higest prevalent class
                            returnResamp="all")
-#### Run the Decision tree model  with "up" sampling method 
+
+# Run the Decision tree model  with "up" sampling method 
 set.seed(201955)
+
 model_rpart_upsampling <- train(Style ~ .,
                                 data = train_data,
                                 method = "rpart",
                                 trControl = fitControl)
-#### Plot the decision tree
+
+# Plot the decision tree
 rpart.plot.version1(model_rpart_upsampling$finalModel)
 title("Decision Tree with balanced dataset")
-#### Result of Decision tree approach with "up" sampling method 
-model_rpart_upsampling$results
-#### Save the maximun of accuracy to conduct Table of results
+
+# Result of Decision tree approach with "up" sampling method 
+max_accuracy_model_rpart_upsampling <- model_rpart_upsampling$results %>% 
+  filter(Accuracy == max(Accuracy))
+
+max_accuracy_model_rpart_upsampling
+
+# Save the maximun of accuracy to conduct Table of results
 rpart_upsampling_accuracy <- max(model_rpart_upsampling$results[2])
 save(rpart_upsampling_accuracy, file = "rpart_upsampling_accuracy.RData")
-#### Memory usage of running Decision tree model with "up" sampling method 
+rpart_upsampling_accuracy
+
+# Memory usage of running Decision tree model with "up" sampling method 
 memory.size()
-#### Time spending in running Decision tree model with "up" sampling method 
+
+# Time spending in running Decision tree model with "up" sampling method 
 runtime <- toc()
 rpart_upsampling_runtime <- runtime$toc - runtime$tic
 save(rpart_upsampling_runtime, file = "rpart_upsampling_runtime.RData")
@@ -574,88 +638,117 @@ save(rpart_upsampling_runtime, file = "rpart_upsampling_runtime.RData")
 
 ### Bagging technique 
 #### Random forest using "rf" method in caret package
-##### Remove and free up working space
+
+# Remove and free up working space
 rm(list = ls(all.names = TRUE))
 gc()
-##### Load necessary packages
+
+# Load necessary packages
 if(!require(tidyverse))install.packages("tidyverse", repos = "http://cran.us.r-project.org")
 if(!require(tictoc))install.packages("tictoc", repos = "http://cran.us.r-project.org")
 if(!require(caret))install.packages("caret", repos = "http://cran.us.r-project.org")
-##### Load the datasets
+
+# Load the datasets
 tic()
 load("train_data_beerrecipe.RData")
-##### Set up cross validation method for the random forest model 
+
+# Set up cross validation method for the random forest model 
 fitControl <- trainControl(method = "repeatedcv",
                            number = 5,  ## 5-fold CV
                            repeats = 3, ## repeated three times
                            p = 0.8,
                            returnResamp="all"
-                           )
-##### Run the random forest model
+)
+
+# Run the random forest model
 set.seed(201955)
 model_rf <- train(Style ~ .,
                   data = train_data,
                   method = "rf",
                   trControl = fitControl,
                   verbose= FALSE)
-##### Show variable important score in the random forest model
+
+# Show variable important score in the random forest model
 var_imp_rf <- varImp(model_rf)
-##### plot the random forest model
+
+# plot the random forest model
 ggplot(var_imp_rf) + 
   ggtitle("Important Variables in Random Forest model")
-##### Result of random forest approach
-model_rf$results
-##### Save the maximum of accuracy to conduct Table of results
+
+# Result of random forest approach
+max_accuracy_model_rf <- model_rf$results %>% filter(Accuracy == max(Accuracy))
+max_accuracy_model_rf
+
+# Save the maximum of accuracy to conduct Table of results
 rf_accuracy <- max(model_rf$results[2])
 save(rf_accuracy, file = "rf_accuracy.RData")
-##### Memory usage of running random forest model
+rf_accuracy
+
+# Memory usage of running random forest model
 memory.size()
-##### Time spending in running random forest model
+
+# Time spending in running random forest model
 runtime <- toc()
 rf_runtime <- runtime$toc - runtime$tic
 save(rf_runtime, file = "rf_runtime.RData")
 
+
 ##########################################################################################################################
 #### Random forest using "rf" method and "up" sampling in caret package
-##### Remove and free up working space
+# Remove and free up working space
 rm(list = ls(all.names = TRUE))
 gc()
-##### Load necessary packages
+
+# Load necessary packages
 if(!require(tidyverse))install.packages("tidyverse", repos = "http://cran.us.r-project.org")
 if(!require(tictoc))install.packages("tictoc", repos = "http://cran.us.r-project.org")
 if(!require(caret))install.packages("caret", repos = "http://cran.us.r-project.org")
-##### Load the datasets
+
+# Load the datasets
 tic()
 load("train_data_beerrecipe.RData")
-##### Set up cross validation method for the Random forest model 
+
+# Set up cross validation method for the Random forest model 
 fitControl <- trainControl(method = "repeatedcv",
                            number = 5,  ## 5-fold CV
                            repeats = 3, ## repeated three times
                            p = 0.8,
-                           returnResamp="all",
-                           sampling = "up" ## randomly subset all the classes 
-                                           ## to match the frequencies of the higest prevalent class
-                           )
-##### Run the Random forest model  with "up" sampling method 
+                           returnResamp = "all",
+                           sampling = "up" ## randomly subset all the classes to match the 
+                           ## frequencies of the higest prevalent class
+)
+
+# Run the Random forest model  with "up" sampling method 
 set.seed(201955)
 model_rf_upsampling <- train(Style ~ .,
                              data = train_data,
                              method = "rf",
                              trControl = fitControl,
                              verbose= FALSE)
-##### Show variable important score in the random forest model
+
+
+# Show variable important score in the random forest model
 var_imp_rf_upsampling <- varImp(model_rf_upsampling)
-##### plot the Random forest model
+
+# plot the Random forest model
 ggplot(var_imp_rf_upsampling) + 
   ggtitle("Important Variables in Random Forest model /n balanced dataset")
-##### Result of Random forest approach with "up" sampling method 
-model_rf_upsampling$results
-##### Save the maximun of accuracy to conduct Table of results
+
+# Result of Random forest approach with "up" sampling method 
+max_accuracy_model_rf_upsampling <- model_rf_upsampling$results %>% 
+  filter(Accuracy == max(Accuracy))
+
+max_accuracy_model_rf_upsampling
+
+# Save the maximum of accuracy to conduct Table of results
 rf_upsampling_accuracy <- max(model_rf_upsampling$results[2])
 save(rf_upsampling_accuracy, file = "rf_upsampling_accuracy.RData")
-##### Memory usage of running Random forest model with "up" sampling method 
+rf_upsampling_accuracy
+
+# Memory usage of running Random forest model with "up" sampling method 
 memory.size()
-##### Time spending in running Random forest model with "up" sampling method 
+
+# Time spending in running Random forest model with "up" sampling method 
 runtime <- toc()
 rf_upsampling_runtime <- runtime$toc - runtime$tic
 save(rf_upsampling_runtime, file = "rf_upsampling_runtime.RData")
@@ -666,88 +759,118 @@ save(rf_upsampling_runtime, file = "rf_upsampling_runtime.RData")
 ##########################################################################################################################
 
 #### EXtreme Gradient Boosting model using "xgbTree" method in caret package
-##### Remove and free up working space
+
+# Remove and free up working space
 rm(list = ls(all.names = TRUE))
 gc()
-##### Load necessary packages
+
+# Load necessary packages
 if(!require(tidyverse))install.packages("tidyverse", repos = "http://cran.us.r-project.org")
 if(!require(tictoc))install.packages("tictoc", repos = "http://cran.us.r-project.org")
 if(!require(caret))install.packages("caret", repos = "http://cran.us.r-project.org")
-##### Load the datasets
+
+# Load the datasets
 tic()
 load("train_data_beerrecipe.RData")
-##### Set up cross validation method for the EXtreme Gradient Boosting model 
+
+# Set up cross validation method for the EXtreme Gradient Boosting model 
 fitControl <- trainControl(method = "repeatedcv",
                            number = 5,  ## 5-fold CV
                            repeats = 3, ## repeated three times
                            p = 0.8,
                            returnResamp="all"
-                           )
-##### Run the EXtreme Gradient Boosting model
+)
+
+# Run the EXtreme Gradient Boosting model
 set.seed(201955)
 model_xgbTree <- train(Style ~ .,
                        data = train_data,
                        method = "xgbTree",
                        trControl = fitControl,
                        verbose= FALSE)
-##### Show variable important score in the EXtreme Gradient Boosting model
+
+
+# Show variable important score in the EXtreme Gradient Boosting model
 var_imp_xgbTree <- varImp(model_xgbTree)
-##### plot the EXtreme Gradient Boosting model
+
+# plot the EXtreme Gradient Boosting model
 ggplot(var_imp_xgbTree) + 
   ggtitle("Important Variables in EXtreme Gradient Boosting Model")
-##### Result of EXtreme Gradient Boosting approach
-model_xgbTree$results
-##### Save the maximum of accuracy to conduct Table of results
+
+# Result of EXtreme Gradient Boosting approach
+max_accuracy_model_xgbTree <- model_xgbTree$results %>% filter(Accuracy == max(Accuracy))
+max_accuracy_model_xgbTree
+
+# Save the maximum of accuracy to conduct Table of results
 xgbTree_accuracy <- max(model_xgbTree$results[8])
 save(xgbTree_accuracy, file = "xgbTree_accuracy.RData")
-##### Memory usage of running EXtreme Gradient Boosting model
+xgbTree_accuracy
+
+# Memory usage of running EXtreme Gradient Boosting model
 memory.size()
-##### Time spending in running EXtreme Gradient Boosting model
+
+# Time spending in running EXtreme Gradient Boosting model
 runtime <- toc()
 xgbTree_runtime <- runtime$toc - runtime$tic
 save(xgbTree_runtime, file = "xgbTree_runtime.RData")
 
+
 ##########################################################################################################################
 #### EXtreme Gradient Boosting model using "xgbTree" method and "up" sampling in caret package
-##### Remove and free up working space
+
+# Remove and free up working space
 rm(list = ls(all.names = TRUE))
 gc()
-##### Load necessary packages
+
+# Load necessary packages
 if(!require(tidyverse))install.packages("tidyverse", repos = "http://cran.us.r-project.org")
 if(!require(tictoc))install.packages("tictoc", repos = "http://cran.us.r-project.org")
 if(!require(caret))install.packages("caret", repos = "http://cran.us.r-project.org")
-##### Load the datasets
+
+# Load the datasets
 tic()
-load("train_data_beerrecipe.RData")     
-##### Set up cross validation method for the EXtreme Gradient Boosting model 
+load("train_data_beerrecipe.RData")
+
+# Set up cross validation method for the EXtreme Gradient Boosting model 
 fitControl <- trainControl(method = "repeatedcv",
                            number = 5,  ## 5-fold CV
                            repeats = 3, ## repeated three times
                            p = 0.8,
                            returnResamp="all",
-                           sampling = "up" ## randomly subset all the classes 
-                                           ## to match the frequencies of the higest prevalent class
-                           )
-##### Run the EXtreme Gradient Boosting model  with "up" sampling method 
+                           sampling = "up" ## randomly subset all the classes to match the 
+                           ## frequencies of the higest prevalent class
+)
+
+# Run the EXtreme Gradient Boosting model  with "up" sampling method 
 set.seed(201955)
 model_xgbTree_upsampling <- train(Style ~ .,
                                   data = train_data,
                                   method = "xgbTree",
                                   trControl = fitControl,
                                   verbose= FALSE)
-##### Show variable important score in the EXtreme Gradient Boosting model
+
+# Show variable important score in the EXtreme Gradient Boosting model
 var_imp_xgbTree_upsampling <- varImp(model_xgbTree_upsampling)
-##### plot the EXtreme Gradient Boosting model
+
+# plot the EXtreme Gradient Boosting model
 ggplot(var_imp_xgbTree_upsampling) + 
-  ggtitle("Important Variables in EXtreme Gradient Boosting Model /n balanced dataset")
-##### Result of EXtreme Gradient Boosting approach with "up" sampling method 
-model_xgbTree_upsampling$results
-##### Save the maximun of accuracy to conduct Table of results
+  ggtitle("Important Variables in EXtreme Gradient Boosting Model balanced dataset")
+
+# Result of EXtreme Gradient Boosting approach with "up" sampling method 
+max_accuracy_model_xgbTree_upsampling <- model_xgbTree_upsampling$results %>% 
+  filter(Accuracy == max(Accuracy))
+
+max_accuracy_model_xgbTree_upsampling
+
+# Save the maximun of accuracy to conduct Table of results
 xgbTree_upsampling_accuracy <- max(model_xgbTree_upsampling$results[8])
 save(xgbTree_upsampling_accuracy, file = "xgbTree_upsampling_accuracy.RData")
-##### Memory usage of running EXtreme Gradient Boosting model with "up" sampling method 
+xgbTree_upsampling_accuracy
+
+# Memory usage of running EXtreme Gradient Boosting model with "up" sampling method 
 memory.size()
-##### Time spending in running EXtreme Gradient Boosting model with "up" sampling method 
+
+# Time spending in running EXtreme Gradient Boosting model with "up" sampling method 
 runtime <- toc()
 xgbTree_upsampling_runtime <- runtime$toc - runtime$tic
 save(xgbTree_upsampling_runtime, file = "xgbTree_upsampling_runtime.RData")
@@ -760,7 +883,6 @@ save(xgbTree_upsampling_runtime, file = "xgbTree_upsampling_runtime.RData")
 ##########################################################################################################################
 ##########################################################################################################################
 
-## Load the accuracy metrics
 load("nb_accuracy.RData")
 load("nb_runtime.RData")
 load("nb_upsampling_accuracy.RData")
@@ -822,12 +944,12 @@ accuracy_results <- bind_rows(accuracy_results,
 accuracy_results %>% knitr::kable()
 
 
-
 ##########################################################################################################################
 ##########################################################################################################################
 # Validate the highest accuracy predicting model of Beer Styles
 ##########################################################################################################################
 ##########################################################################################################################
+
 
 ## Remove and free up working space
 rm(list = ls(all.names = TRUE))
@@ -870,7 +992,7 @@ final_model_xgbTree <- train(Style ~ .,
                              ## to evaluate
                              verbose= FALSE)
 
-## Show variable important score in the EXtreme Gradient Boosting model
+## Show variable important score in the EXtreme Gradient Boostingt model
 var_imp_final_model_xgbTree <- varImp(final_model_xgbTree)
 
 ## plot the EXtreme Gradient Boosting model
@@ -881,6 +1003,7 @@ ggplot(var_imp_final_model_xgbTree) +
 actual_style <- test_data$Style
 predict_style <- predict(final_model_xgbTree, test_data)
 final_model_xgbTree_accuracy <- accuracy(actual_style,predict_style)
+final_model_xgbTree_accuracy
 
 ## Save the maximum of accuracy to conduct Table of results
 save(final_model_xgbTree_accuracy, file = "final_model_xgbTree_accuracy.RData")
@@ -901,6 +1024,7 @@ save(final_model_xgbTree_runtime, file = "final_model_xgbTree_runtime.RData")
 #################################################################################################################
 #################################################################################################################
 
+# Final result
 Final_result <- data_frame(Model = "EXtreme Gradient Boosting", 
                            Accuracy = final_model_xgbTree_accuracy,
                            Runtime_second = final_model_xgbTree_runtime)

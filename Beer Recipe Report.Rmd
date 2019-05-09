@@ -13,6 +13,8 @@ knitr::opts_chunk$set(fig.width=12,
                       fig.height=5)
 ```
 
+
+
 # Introduction
 
 Beer seem to be one of the most favorite drink of all time. Recently, there are many different types of beer occurred in the Vietnam market, and we seem to be interested in challenging each other to correctly name those beers without seeing their labels. In fact, the project is conducted because of the curiosity about beer and the urge to find answer for the challenge.  
@@ -30,9 +32,11 @@ The report is expected to follow part of the structure which is recommended by D
 7. Conclusion
 
 
+
 # Defining the question
 
 There are two main questions the project expects to answer. The first one is what model will be the good one to produce the highest accuracy. The second one is what is the most important characteristic of beers that help us in choicing the right beer style.
+
 
 
 # Data Cleaning
@@ -41,8 +45,8 @@ There are two main questions the project expects to answer. The first one is wha
 
 ```{r Remove and free up working space, echo = TRUE, message = FALSE, warning = FALSE, eval = TRUE}
 
+# Remove and free up working space
 rm(list = ls(all.names = TRUE))
-
 gc()
 
 ```
@@ -86,7 +90,7 @@ names(recipedata)
 
 ### Define the variables
 
-The "names" function had shown that the dataset had 23 variables, and their definitions are described below.
+* The "names" function had shown that the dataset had 23 variables, and their definitions are described below.
 
 1. BeerID : Record ID of each user
 2. Name: A beer name made by an user
@@ -112,7 +116,7 @@ The "names" function had shown that the dataset had 23 variables, and their defi
 22. PrimingAmount: Amount of priming ingredients used (g)
 23. UserId: ID of an user
 
-The definition of those variables are supported by the owner of the dataset called ["Brewer's Friend Beer Recipes"](https://www.brewersfriend.com/homebrew/recipe/calculator), and other websites which are listed below.
+* The definition of those variables are supported by the owner of the dataset called ["Brewer's Friend Beer Recipes"](https://www.brewersfriend.com/homebrew/recipe/calculator), and other websites which are listed below.
 
 1. [Frequently Asked Questions](https://www.brewersfriend.com/faq/) in Brewer' Friend Beer Recipes
 2. [Box Brew Kits](https://www.boxbrewkits.com/blogs/news/16337216-5-abbreviations-brewers-use-that-everyday-beer-drinkers-should-know)
@@ -185,27 +189,29 @@ skim(recipedata)
 
 ### Standardizing  the measurement unit
 
-The site Brewer's Friend allowed users to fill their beer's recipes in to different scale "Degree Plato" and "Specific Gravity", and it could be seen in "SugarScale" variable. The project will convert all values recored in "Degree Plato" to "Specific Gravity".
+* The site Brewer's Friend allowed users to fill their beer's recipes in to different scale "Degree Plato" and "Specific Gravity", and it could be seen in "SugarScale" variable. The project will convert all values recored in "Degree Plato" to "Specific Gravity".
 
-Convert all Plato units to specific gravity (SG)
+* Convert all Plato units to specific gravity (SG)
+The function could be found in the dataset owner [website](https://www.brewersfriend.com/plato-to-sg-conversion-chart/)
 
-https://www.brewersfriend.com/plato-to-sg-conversion-chart/
-SG = 1+ (plato / (258.6 – ( (plato/258.2) *227.1) ) )
-1 + (x / (258.6 - ((x/258.2) * 227.1)))
+SG = 1+ (plato / (258.6 – ( (plato/258.2) x 227.1) ) )
 
 ```{r Convert from Plato to Specific Gravity, echo = TRUE}
 
+# Set a function to convert Plato to Specific Gravity
 plato_to_sg <- function(x) {
   1 + (x / (258.6 - ((x/258.2) * 227.1)))
   }
 
+# Nest the dataset by SugarScale
 recipedata_nest_sugarscale <- recipedata %>%
   nest(-SugarScale)
 
+# Apply the plato_to_sg function to the nested dataset
 recipedata_nest_sugarscale$data[[2]] <- recipedata_nest_sugarscale$data[[2]] %>%
   mutate_at(vars(OG, FG, BoilGravity), plato_to_sg)
   
-
+# Unnest the datasets
 recipedata_sg_scale <- recipedata_nest_sugarscale %>%
   unnest(data) %>%
   mutate(SugarScale = as.factor("Specific_Gravity"))
@@ -213,15 +219,15 @@ recipedata_sg_scale <- recipedata_nest_sugarscale %>%
 ```
 
 
-"SugarScale" indicated what measurement was used by users, so it should be dropped after all variables were calculated in "Specific Gravity".
+* "SugarScale" indicated what measurement was used by users, so it should be dropped after all variables were calculated in "Specific Gravity".
 
 ```{r Drop SugarScale, echo = TRUE}
 
+# Drop SugarScale
 recipedata_sg_scale <- recipedata_sg_scale %>% select(- SugarScale)
 
-skim(recipedata_sg_scale)
-
 ```
+
 
 ### Handling missing values
 
@@ -303,7 +309,7 @@ skim(recipedata_sg_scale_dropNAabove30_and_dropNAstyle, Style)
 
 Missing values in a numerial variable are commonly replaced by sample mean or sample median. It is believed that the distribution of "BoilGravity" will help to make a choice between those two numbers.
 
-Plot the histogram of Boil Gravity in Specific Gravity scale
+* Plot the histogram of Boil Gravity in Specific Gravity scale
 
 ```{r Histogram and boxplot of Boil Gravity, echo = TRUE}
 
@@ -371,7 +377,7 @@ recipedata_tidy <- recipedata_sg_scale_dropNAabove30_and_dropNAstyle %>%
 
 #### Create and save the dataset that will be used in this project
 
-Show the top ten beer styles based off number of submissions
+* Show the top ten beer styles based off number of submissions
 
 ```{r}
 
@@ -393,7 +399,7 @@ top10_beer %>%
 ```
 
 
-Create "recipe_top10" dataset and save it
+* Create "recipe_top10" dataset and save it
 
 ```{r Create and save the dataset, echo = TRUE}
 
@@ -406,6 +412,7 @@ recipe_top10 <- recipedata_tidy %>%
 save(recipe_top10, file = "recipe_top10.RData")
 
 ```
+
 
 
 # Exploratory data analysis
@@ -423,9 +430,9 @@ glimpse(recipe_top10)
 
 ##  Summary statistics of the dataset
 
-. There is no missing value in the dataset.
-. "BoilSize" and "sizeL" have high standard Deviation 193.82 and 182.13 respectively. Moreover, there are extreme outliers in both variables. For example, the maximum value of "BoilSize" is 6454, while its minumum one is 1.
-. The outliers would be observed clearly through the boxplot.
+* There is no missing value in the dataset.
+* "BoilSize" and "sizeL" have high standard Deviation 193.82 and 182.13 respectively. Moreover, there are extreme outliers in both variables. For example, the maximum value of "BoilSize" is 6454, while its minumum one is 1.
+* The outliers would be observed clearly through the boxplot.
 
 ```{r Summary statistics of the dataset, echo = TRUE}
 
@@ -510,7 +517,7 @@ box_plot_numeric_vars(recipe_top10_log10, num_cols)
 
 ## Violin plot of transformed dataset
 
-. There are groups of variables that seem to have identical shapes, for example "BoilSize" and "sizeL", "OG" and "FG".
+There are groups of variables that seem to have identical shapes, for example "BoilSize" and "sizeL", "OG" and "FG".
 
 ```{r Violin plot of transformed dataset, echo = TRUE}
 
@@ -570,7 +577,6 @@ num_cols <- c("Color", "sizeL", "BoilSize", "OG", "FG", "ABV", "IBU", "BoilTime"
 hist_plot_numeric_vars(recipe_top10_log10, num_cols)
 
 ```
-
 
 ## Scatter plot of transformed dataset
 
@@ -648,7 +654,7 @@ recipe_top10_log10 %>%
 ```
 
 
-## correlation matrices of all numerical variables
+## Correlation matrices of all numerical variables
 
 There was a strong positive correlation (0.92) between "sizeL" and “BoilSize”, so it would be reasonable to drop out "sizeL" variable. In addition, 0.77 and 0.76 show the moderate positive correlation results in both cases including OG versuses FG and OG versuses ABV, but the project decided to to keep them in the dataset for modelling step.
 
@@ -707,7 +713,10 @@ library(caret)
 # Create train_data and test_data
 set.seed(2019)
 
-test_index <- createDataPartition(recipe_top10_log10_tidy$Style, time = 1, p = 0.5, list = FALSE)
+test_index <- createDataPartition(recipe_top10_log10_tidy$Style, 
+                                  time = 1, 
+                                  p = 0.5, 
+                                  list = FALSE)
 
 train_data <- recipe_top10_log10_tidy %>% slice(test_index)
 test_data <- recipe_top10_log10_tidy %>% slice(-test_index)
@@ -826,8 +835,8 @@ fitControl <- trainControl(method = "repeatedcv",
                            number = 5,  ## 5-fold CV
                            repeats = 3, ## repeated three times
                            p = 0.8,
-                           sampling = "up" ## randomly subset all the classes 
-                                           ## to match the frequencies of the higest prevalent class
+                           sampling = "up" ## randomly subset all the classes to match the
+                                           ## frequencies of the higest prevalent class
                            )
 
 # Run the Naive Bayes model with "up" sampling method 
@@ -840,7 +849,9 @@ model_nb_upsampling <- train(Style ~ .,
            verbose= FALSE)
 
 # Result of Naive Bayes approach with "up" sampling method 
-max_accuracy_model_nb_upsampling <- model_nb_upsampling$results %>% filter(Accuracy == max(Accuracy))
+max_accuracy_model_nb_upsampling <- model_nb_upsampling$results %>% 
+  filter(Accuracy == max(Accuracy))
+
 max_accuracy_model_nb_upsampling
 
 # Save the maximum of accuracy to conduct Table of results
@@ -944,8 +955,8 @@ fitControl <- trainControl(method = "repeatedcv",
                            number = 5,  ## 5-fold CV
                            repeats = 3, ## repeated three times
                            p = 0.8,
-                           sampling = "up", ## randomly subset all the classes 
-                                           ## to match the frequencies of the higest prevalent class
+                           sampling = "up", ## randomly subset all the classes to match the 
+                                           ## frequencies of the higest prevalent class
                            returnResamp="all")
 
 # Run the Decision tree model  with "up" sampling method 
@@ -961,7 +972,9 @@ rpart.plot.version1(model_rpart_upsampling$finalModel)
 title("Decision Tree with balanced dataset")
 
 # Result of Decision tree approach with "up" sampling method 
-max_accuracy_model_rpart_upsampling <- model_rpart_upsampling$results %>% filter(Accuracy == max(Accuracy))
+max_accuracy_model_rpart_upsampling <- model_rpart_upsampling$results %>% 
+  filter(Accuracy == max(Accuracy))
+
 max_accuracy_model_rpart_upsampling
 
 # Save the maximun of accuracy to conduct Table of results
@@ -1069,8 +1082,8 @@ fitControl <- trainControl(method = "repeatedcv",
                            repeats = 3, ## repeated three times
                            p = 0.8,
                            returnResamp="all",
-                           sampling = "up" ## randomly subset all the classes 
-                                           ## to match the frequencies of the higest prevalent class
+                           sampling = "up" ## randomly subset all the classes to match the 
+                                           ## frequencies of the higest prevalent class
                            )
 
 # Run the Random forest model  with "up" sampling method 
@@ -1090,7 +1103,9 @@ ggplot(var_imp_rf_upsampling) +
   ggtitle("Important Variables in Random Forest model /n balanced dataset")
 
 # Result of Random forest approach with "up" sampling method 
-max_accuracy_model_rf_upsampling <- model_rf_upsampling$results %>% filter(Accuracy == max(Accuracy))
+max_accuracy_model_rf_upsampling <- model_rf_upsampling$results %>% 
+  filter(Accuracy == max(Accuracy))
+
 max_accuracy_model_rf_upsampling
 
 # Save the maximum of accuracy to conduct Table of results
@@ -1153,7 +1168,6 @@ ggplot(var_imp_xgbTree) +
   ggtitle("Important Variables in EXtreme Gradient Boosting Model")
 
 # Result of EXtreme Gradient Boosting approach
-model_xgbTree$results
 max_accuracy_model_xgbTree <- model_xgbTree$results %>% filter(Accuracy == max(Accuracy))
 max_accuracy_model_xgbTree
 
@@ -1196,8 +1210,8 @@ fitControl <- trainControl(method = "repeatedcv",
                            repeats = 3, ## repeated three times
                            p = 0.8,
                            returnResamp="all",
-                           sampling = "up" ## randomly subset all the classes 
-                                           ## to match the frequencies of the higest prevalent class
+                           sampling = "up" ## randomly subset all the classes to match the 
+                                           ## frequencies of the higest prevalent class
                            )
 
 # Run the EXtreme Gradient Boosting model  with "up" sampling method 
@@ -1213,10 +1227,12 @@ var_imp_xgbTree_upsampling <- varImp(model_xgbTree_upsampling)
 
 # plot the EXtreme Gradient Boosting model
 ggplot(var_imp_xgbTree_upsampling) + 
-  ggtitle("Important Variables in EXtreme Gradient Boosting Model /n balanced dataset")
+  ggtitle("Important Variables in EXtreme Gradient Boosting Model balanced dataset")
 
 # Result of EXtreme Gradient Boosting approach with "up" sampling method 
-max_accuracy_model_xgbTree_upsampling <- model_xgbTree_upsampling$results %>% filter(Accuracy == max(Accuracy))
+max_accuracy_model_xgbTree_upsampling <- model_xgbTree_upsampling$results %>% 
+  filter(Accuracy == max(Accuracy))
+
 max_accuracy_model_xgbTree_upsampling
 
 # Save the maximun of accuracy to conduct Table of results
